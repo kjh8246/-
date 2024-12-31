@@ -1,0 +1,52 @@
+    (INIT)
+    @i
+    M=0
+
+    (LOOP)
+ 
+    @KBD
+    D=M
+
+    @CLICK
+    D;JNE   //KBO != 0 이면 (CLICK)으로 이동
+    @UNCLICK
+    D;JEQ   //KBO = 0 이면 (UNCLICK)으로 이동
+
+
+    //키보드 누른경우
+    (CLICK)
+    @SCREEN
+    D=A //@SCREAN주소 D에 넣기
+    @i
+    D=D+M   //@SCREAN주소 + i값
+    A=D //A레지스터에 D값 넣기
+    M=-1    //A레지스터 주소에 -1(1111 1111 1111 1111)값 넣기
+    @i
+    M=M+1   //i값 + 1
+    @END
+    0;JMP   //(END)로 이동
+
+    //키보드 안누른 경우
+    (UNCLICK)
+    @SCREEN
+    D=A //@SCREAN주소 D에 넣기
+    @i
+    D=D+M   //@SCREAN주소 + i값
+    A=D //A레지스터에 D값 넣기
+    M=0 //A레지스터 주소에 0값 넣기
+    @i
+    M=M-1   //i값 - 1
+    @END
+    0;JMP   //(END)로 이동
+
+
+    (END)
+    @i
+    D=M
+
+    @INIT
+    D;JLT   //i < 0 이면 (INIT)으로 이동
+
+
+    @LOOP
+    0;JMP
