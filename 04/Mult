@@ -1,0 +1,27 @@
+        @0
+        D=A     //상수을 D에 넣기
+        @R0     // 메모리 0주소를 참조함
+        M=D     //주소값 0에 D값 넣기 
+        @2
+        D=A     //상수을 D에 넣기
+        @R1     // 메모리 1주소를 참조함
+        M=D     //주소값 1에 D값 넣기 
+        @R2
+        M=0
+  (LOOP)
+        @R0 
+        D=M     // D=R0
+        @END
+        D;JEQ       // if R0-1==0 goto END
+        @R0
+        M=M-1 //R0 = R0-1
+        @R1
+        D=M
+        @R2
+        M=D+M       // R2 = R1 + R2
+
+        @LOOP
+        0;JMP       // Goto LOOP
+  (END)
+        @END
+        0;JMP   // 무한루프(남은 실행횟수 소모)
