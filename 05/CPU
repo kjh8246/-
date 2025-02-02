@@ -1,0 +1,77 @@
+// This file is part of www.nand2tetris.org
+// and the book "The Elements of Computing Systems"
+// by Nisan and Schocken, MIT Press.
+// File name: projects/5/CPU.hdl
+/**
+ * The Hack Central Processing unit (CPU).
+ * Parses the binary code in the instruction input and executes it according to the
+ * Hack machine language specification. In the case of a C-instruction, computes the
+ * function specified by the instruction. If the instruction specifies to read a memory
+ * value, the inM input is expected to contain this value. If the instruction specifies
+ * to write a value to the memory, sets the outM output to this value, sets the addressM
+ * output to the target address, and asserts the writeM output (when writeM = 0, any
+ * value may appear in outM).
+ * If the reset input is 0, computes the address of the next instruction and sets the
+ * pc output to that value. If the reset input is 1, sets pc to 0.
+ * Note: The outM and writeM outputs are combinational: they are affected by the
+ * instruction's execution during the current cycle. The addressM and pc outputs are
+ * clocked: although they are affected by the instruction's execution, they commit to
+ * their new values only in the next cycle.
+ */
+CHIP CPU {
+
+    IN  inM[16],         // M value input  (M = contents of RAM[A])
+        instruction[16], // Instruction for execution
+        // instruction은 "ixxa cccc ccdd djjj" 의 bit 배열을 갖는다. 제일 오른쪽이 index 0이다.
+        reset;           // Signals whether to re-start the current
+                         // program (reset==1) or continue executing
+                         // the current program (reset==0).
+
+    OUT outM[16],        // M value output
+        writeM,          // Write to M? 
+        addressM[15],    // Address in data memory (of M)
+        pc[15];          // address of next instruction
+
+    PARTS:
+    
+    //A명령어인지 C명령어 인지 구분
+    Not(in= instruction[15], out= ACommend);
+    Not(in= ACommend, out= CCommend);
+
+    //C명령어이고 d1(A레지스터에 저장할지 결정)가 0인경우 instruction가 1인경우 ALUOut이 ARegister에 들어감 
+    And(a= CCommend, b= instruction[5], out= ARegInSel);
+    Mux16(a= instruction, b= ALUOut, sel= ARegInSel, out= ARegIn);
+
+    //A명령어 이거나 d1(A레지스터에 저장할지 결정)가 1일경우 ARegister에 저장
+    Or(a= ACommend, b= instruction[5], out= ARegLoad);
+    ARegister(in= ARegIn, load= ARegLoad, out= ARegOut);
+
+    //a비트가 ARegOut이 들어갈지 inM이 들어갈지 결정
+    Mux16(a= ARegOut, b= inM, sel= instruction[12], out= ALUYIn);
+
+    //C명령어이고 d2(D레지스터에 저장할지 결정)가 1인경우 DRegister에 저장
+    And(a= CCommend, b= instruction[4], out= DRegLoad);
+    DRegister(in= ALUOut, load= DRegLoad, out= DRegOut);
+
+    // ALU에는 input 2개, 6개의 comp bit, ng, zr, ALUout을 연결해준다.
+    ALU(x= DRegOut, y= ALUYIn, zx= instruction[11], nx= instruction[10], zy= instruction[9], ny= instruction[8], f= instruction[7], no= instruction[6], out= ALUOut, zr= ZROut, ng= NGOut);
+
+    //양수
+    Or(a=NGOut, b=ZROut, out=NGZR);
+    Not(in= NGZR, out= posi);
+    And(a=instruction[2], b=NGOut, out=jlt);
+    And(a=instruction[1], b=ZROut, out=jeq);
+    And(a=instruction[0], b=posi, out=jgt);
+    Or(a=jlt, b=jeq, out=jle);
+    Or(a=jle, b=jgt, out=jumpToA); 
+
+    And(a= CCommend, b= jumpToA, out= PCLoad);
+    Not(in= PCLoad, out= PCInc);
+
+    PC(in= ARegOut, load= PCLoad, inc= PCInc, reset= reset, out[0..14]= pc);
+
+    And(a=CCommend, b=instruction[3], out=writeM);
+    Or16(a=false, b=ARegOut, out[0..14]=addressM);
+    Or16(a= false, b= ALUOut, out= outM);
+
+}
