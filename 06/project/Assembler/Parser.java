@@ -1,4 +1,4 @@
-package project;
+package project.Assembler;
 
 import java.io.BufferedReader;
 import java.io.FileReader;
@@ -6,30 +6,29 @@ import java.io.IOException;
 
 public class Parser {
 	BufferedReader reader;
-	String filePath = "/workspace/compiler/src/project/Prog.asm";
-	String A_COMMAND = "A_COMMAND";
-	String C_COMMAND = "C_COMMAND";
-	String L_COMMAND = "L_COMMAND";
-	String command;
+	String filePath = "/workspace/compiler/src/project/Assembler/Prog.asm";
+	public String A_COMMAND = "A_COMMAND";
+	public String C_COMMAND = "C_COMMAND";
+	public String L_COMMAND = "L_COMMAND";
+	public String command;
     
-	public Parser() throws IOException{
-		this.reader = new BufferedReader(new FileReader(filePath));
-		advance();
+	public Parser(String filePath) throws IOException{
+		
+		reader = new BufferedReader(new FileReader(filePath));
     }
 	
 	public void reset() throws IOException{
-		this.reader = new BufferedReader(new FileReader(filePath));
-		advance();
+		reader = new BufferedReader(new FileReader(filePath));
 	}
 	
-	//명령이 더 잇는지 확인
-	public Boolean hasMoreCommands() {
-		return command == null ? false : true;
+	//명령이 더 있는지 확인
+	public Boolean hasMoreCommands() throws IOException{
+		return reader.ready();
 	}
 	
 	//다음명령 읽기
     public void advance() throws IOException{
-		command = this.reader.readLine();
+		command = reader.readLine();
 		if(command != null)
 			command = command.trim();
 	}
