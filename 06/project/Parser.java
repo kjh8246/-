@@ -4,7 +4,7 @@ import java.io.BufferedReader;
 import java.io.FileReader;
 import java.io.IOException;
 
-public class Paser {
+public class Parser {
 	BufferedReader reader;
 	String filePath = "/workspace/compiler/src/project/Prog.asm";
 	String A_COMMAND = "A_COMMAND";
@@ -12,7 +12,7 @@ public class Paser {
 	String L_COMMAND = "L_COMMAND";
 	String command;
     
-	public Paser() throws IOException{
+	public Parser() throws IOException{
 		this.reader = new BufferedReader(new FileReader(filePath));
 		advance();
     }
