@@ -10,7 +10,7 @@ public class Main {
      * @param args
      */
     public static void main(String[] args) throws IOException {
-		Paser paser = new Paser();
+		Parser parser = new Parser();
 		Code code = new Code();
 		SymbolTable symbolTable = new SymbolTable();
 		
@@ -20,45 +20,65 @@ public class Main {
 		
 		
 		//1패스
-		while(paser.hasMoreCommands()) {
+		while(parser.hasMoreCommands()) {
 			
-			if(paser.commandType().equals(paser.A_COMMAND) || paser.commandType().equals(paser.C_COMMAND)){
+			if(parser.commandType().equals(parser.A_COMMAND) || parser.commandType().equals(parser.C_COMMAND)){
 				romAddress++;
 			}
-			if(paser.commandType().equals(paser.L_COMMAND)) {
-				symbolTable.addEntry(paser.symbol(), romAddress);
+			if(parser.commandType().equals(parser.L_COMMAND)) {
+				symbolTable.addEntry(parser.symbol(), romAddress);
 			}
-			paser.advance();
+			parser.advance();
 		}
-		paser.reset();
+		parser.reset();
 		//2패스
-		while(paser.hasMoreCommands()) {
-			System.out.println(paser.command);
-			if(paser.commandType().equals(paser.A_COMMAND) && paser.isNumberic(paser.symbol())) {	//A명령어 이고 심볼이 숫자인경우
-				binaryCode += code.to16bitBinary(paser.symbol())+"\n";
-				System.out.println(code.to16bitBinary(paser.symbol()));
+		while(parser.hasMoreCommands()) {
+			System.out.println(parser.command);
+			if(parser.commandType().equals(parser.A_COMMAND) && parser.isNumberic(parser.symbol())) {	//A명령어 이고 심볼이 숫자인경우
+				binaryCode += code.to16bitBinary(parser.symbol())+"\n";
+				System.out.println(code.to16bitBinary(parser.symbol()));
 			}
-			else if(paser.commandType().equals(paser.A_COMMAND) && !paser.isNumberic(paser.symbol())){ 	//A명령어 이고 심볼이 숫자가 아닌경우
-				if(symbolTable.contains(paser.symbol())) {
-					int address = symbolTable.getAddress(paser.symbol());
+			else if(parser.commandType().equals(parser.A_COMMAND) && !parser.isNumberic(parser.symbol())){ 	//A명령어 이고 심볼이 숫자가 아닌경우
+				if(symbolTable.contains(parser.symbol())) {
+					int address = symbolTable.getAddress(parser.symbol());
 					binaryCode += code.to16bitBinary(Integer.toString(address))+"\n";
 					System.out.println(code.to16bitBinary(Integer.toString(address))+" "+address);
 				}else {
-					symbolTable.addEntry(paser.symbol(), variableAddress);
+					symbolTable.addEntry(parser.symbol(), variableAddress);
 					binaryCode += code.to16bitBinary(Integer.toString(variableAddress))+"\n";
 					System.out.println(code.to16bitBinary(Integer.toString(variableAddress)));
 					variableAddress++;
 				}
 			}
-			else if(paser.commandType().equals(paser.C_COMMAND)) {
-				binaryCode += code.comp(paser.comp())+code.dest(paser.dest())+code.jump(paser.jump())+"\n";
-				System.out.println(code.comp(paser.comp())+code.dest(paser.dest())+code.jump(paser.jump()));
+			else if(parser.commandType().equals(parser.C_COMMAND)) {
+				binaryCode += code.comp(parser.comp())+code.dest(parser.dest())+code.jump(parser.jump())+"\n";
+				System.out.println(code.comp(parser.comp())+code.dest(parser.dest())+code.jump(parser.jump()));
 			}
+			parser.advance();
+		}
+		System.out.println("================");
+		System.out.println(binaryCode);
+
+		
+		// 기호없는 버전
+		/**
+       	while(parser.hasMoreCommands()) {
+			//System.out.println(parser.command);
+			if(parser.commandType().equals(parser.A_COMMAND)) {
+				//System.out.println(code.to16bitBinary(parser.symbol()));
+				binaryCode += code.to16bitBinary(parser.symbol())+"\n";
+
+			}
+			else if(parser.commandType().equals(parser.C_COMMAND)) {
+				System.out.println(code.comp(parser.comp())+code.dest(parser.dest())+code.jump(parser.jump()));
+				binaryCode += code.comp(parser.comp())+code.dest(parser.dest())+code.jump(parser.jump())+"\n";
+			}
+			
 			paser.advance();
 		}
 		System.out.println("================");
 		System.out.println(binaryCode);
-		
+		*/
 
 		// 1. 파일 객체 생성            
 		File saveFile = new File("/workspace/compiler/src/project/Prog.hack");             
