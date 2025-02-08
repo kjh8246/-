@@ -1,6 +1,67 @@
-package project;
+package project.Assembler;
+import java.io.IOException;
 
 public class Code {
+	Parser parser;
+	SymbolTable symbolTable;
+	int romAddress = 0;	//rom주소
+	int variableAddress = 16;	//변수주소
+	String binaryCode = "";	
+	
+	public Code(String filePath) throws IOException {
+		parser = new Parser(filePath);
+		symbolTable = new SymbolTable();
+		firstPass();
+		secondPass();
+	}
+	
+	//1패스
+	//라인단위로 처음부터 끝까지 훑으면서 코드는 생성하지 않고 기호태이블 구성
+	public void firstPass() throws IOException{
+		while(parser.hasMoreCommands()) {
+			parser.advance();
+
+			if(parser.commandType().equals(parser.A_COMMAND) || parser.commandType().equals(parser.C_COMMAND)){
+				romAddress++;
+			}
+			if(parser.commandType().equals(parser.L_COMMAND)) {
+				symbolTable.addEntry(parser.symbol(), romAddress);
+			}
+		}
+	}
+	
+	//2패스
+	public void secondPass() throws IOException{
+		parser.reset();	//처음부터 다시 훑기위해 리셋
+		
+		while(parser.hasMoreCommands()) {
+			parser.advance();
+			//System.out.println(parser.command);
+			if(parser.commandType().equals(parser.A_COMMAND) && parser.isNumberic(parser.symbol())) {	//A명령어 이고 심볼이 숫자인경우
+				binaryCode += to16bitBinary(parser.symbol())+"\n";
+				//System.out.println(code.to16bitBinary(parser.symbol()));
+			}
+			else if(parser.commandType().equals(parser.A_COMMAND) && !parser.isNumberic(parser.symbol())){ 	//A명령어 이고 심볼이 숫자가 아닌경우
+				if(symbolTable.contains(parser.symbol())) {
+					int address = symbolTable.getAddress(parser.symbol());
+					binaryCode += to16bitBinary(Integer.toString(address))+"\n";
+					//System.out.println(code.to16bitBinary(Integer.toString(address))+" "+address);
+				}else {
+					symbolTable.addEntry(parser.symbol(), variableAddress);
+					binaryCode += to16bitBinary(Integer.toString(variableAddress))+"\n";
+					//System.out.println(code.to16bitBinary(Integer.toString(variableAddress)));
+					variableAddress++;
+				}
+			}
+			else if(parser.commandType().equals(parser.C_COMMAND)) {	//c명령어
+				binaryCode += comp(parser.comp())+dest(parser.dest())+jump(parser.jump())+"\n";
+				//System.out.println(code.comp(parser.comp())+code.dest(parser.dest())+code.jump(parser.jump()));
+			}
+		}
+		
+		//System.out.println(binaryCode);
+	}
+	
 	
 	//dest연상기호 2진수로 변환
 	public String dest(String mnemonic) {
